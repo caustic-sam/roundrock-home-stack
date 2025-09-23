@@ -62,28 +62,7 @@ services:
       timeout: 10s
       retries: 3
 
-  # ---------------------------------------------------------------------------
-  # NODE EXPORTER - System Metrics for Monitoring Stack
-  # ---------------------------------------------------------------------------
-  node-exporter:
-    image: prom/node-exporter:latest
-    container_name: node-exporter-16gb
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.rootfs=/rootfs'
-      - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
-      - '--collector.netclass.ignored-devices=^(veth|docker|lo).*'
-      - '--collector.netdev.device-exclude=^(veth|docker|lo).*'
-    ports:
-      - "9100:9100"  # Expose for monitoring stack
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    networks:
-      - portainer
-    restart: unless-stopped
+
 
 volumes:
   portainer_data:
