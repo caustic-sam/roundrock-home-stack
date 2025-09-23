@@ -1,14 +1,21 @@
-# Docker Compose file for Monitoring Stack: Prometheus, Grafana, Alertmanager, Node Exporter, and cAdvisor
-# This setup provides a comprehensive monitoring solution for Docker environments.
-# Ensure to customize configurations and credentials as needed.
-# Save this file as docker-compose.yml and run with `docker-compose up -d`
-# Adjust versions and settings according to your requirements.
-# Alertmanager configuration is in svc/svc-alertcenter/alertmanager.yml
-
-
-version: '3.8'
+# =============================================================================
+# ROUNDROCK HOME STACK - MONITORING SERVICES (GitHub Version)
+# =============================================================================
+# Fixed to work with your current GitHub repository structure
+# https://github.com/caustic-sam/roundrock-home-stack.git
+#
+# ACCESSING SERVICES:
+#   Grafana:      http://your-ip:3001 (admin/admin123)
+#   Prometheus:   http://your-ip:9091
+#   AlertManager: http://your-ip:9094
+#   Node Exporter: http://your-ip:9101/metrics
+#   cAdvisor:     http://your-ip:8020
+# =============================================================================
 
 services:
+  # ---------------------------------------------------------------------------
+  # PROMETHEUS - Metrics Collection & Storage Engine
+  # ---------------------------------------------------------------------------
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
@@ -20,16 +27,26 @@ services:
       - '--storage.tsdb.retention.time=15d'
       - '--web.enable-lifecycle'
       - '--web.enable-admin-api'
+      - '--web.external-url=http://localhost:9091'
     ports:
       - "9091:9090"
     volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./prometheus/rules:/etc/prometheus/rules
+      # Updated paths for your current structure
+      - ../svc-prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../svc-prometheus/rules:/etc/prometheus/rules:ro
       - prometheus_data:/prometheus
     networks:
       - monitoring
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
+  # ---------------------------------------------------------------------------
+  # GRAFANA - Visualization & Dashboard Platform
+  # ---------------------------------------------------------------------------
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -39,32 +56,53 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin123
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_INSTALL_PLUGINS=grafana-piechart-panel
+      - GF_SERVER_ROOT_URL=http://localhost:3001
+      - GF_SECURITY_ALLOW_EMBEDDING=true
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
-      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+      # Updated paths for your current structure
+      - ../svc-grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ../svc-grafana/datasources:/etc/grafana/provisioning/datasources:ro
     networks:
       - monitoring
     restart: unless-stopped
     depends_on:
       - prometheus
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
+  # ---------------------------------------------------------------------------
+  # ALERTMANAGER - Alert Routing & Notification Handler
+  # ---------------------------------------------------------------------------
   alertmanager:
     image: prom/alertmanager:latest
     container_name: alertmanager
     ports:
       - "9094:9093"
     volumes:
-      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      # Updated path for your current structure
+      - ../svc-alertcenter/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
       - alertmanager_data:/alertmanager
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'
       - '--storage.path=/alertmanager'
-      - '--web.external-url=http://localhost:9093'
+      - '--web.external-url=http://localhost:9094'
+      - '--web.route-prefix=/'
     networks:
       - monitoring
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9093/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
+  # ---------------------------------------------------------------------------
+  # NODE EXPORTER - System Metrics Collection
+  # ---------------------------------------------------------------------------
   node-exporter:
     image: prom/node-exporter:latest
     container_name: node-exporter-host
@@ -73,6 +111,8 @@ services:
       - '--path.rootfs=/rootfs'
       - '--path.sysfs=/host/sys'
       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--collector.netclass.ignored-devices=^(veth|docker|lo).*'
+      - '--collector.netdev.device-exclude=^(veth|docker|lo).*'
     ports:
       - "9101:9100"
     volumes:
@@ -83,6 +123,9 @@ services:
       - monitoring
     restart: unless-stopped
 
+  # ---------------------------------------------------------------------------
+  # CADVISOR - Container Metrics Collection
+  # ---------------------------------------------------------------------------
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
@@ -100,11 +143,19 @@ services:
     networks:
       - monitoring
     restart: unless-stopped
+    command:
+      - '--housekeeping_interval=30s'
+      - '--max_housekeeping_interval=35s'
+      - '--event_storage_event_limit=default=0'
+      - '--event_storage_age_limit=default=0'
 
 volumes:
   prometheus_data:
+    driver: local
   grafana_data:
+    driver: local
   alertmanager_data:
+    driver: local
 
 networks:
   monitoring:
