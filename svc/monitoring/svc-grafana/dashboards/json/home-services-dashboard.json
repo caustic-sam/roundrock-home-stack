@@ -84,13 +84,13 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "up{container=\"homeassistant\"}",
+          "expr": "up{job=\"prometheus\"}",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         }
       ],
-      "title": "🏡 Home Assistant",
+      "title": "📊 Prometheus",
       "type": "stat"
     },
     {
@@ -159,13 +159,13 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "up{container=\"plex\"}",
+          "expr": "up{job=\"node-exporter\"}",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         }
       ],
-      "title": "📺 Plex Media Server",
+      "title": "🖥️ Node Exporter",
       "type": "stat"
     },
     {
@@ -234,13 +234,13 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "up{container=\"jellyfin\"}",
+          "expr": "up{job=\"cadvisor\"}",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         }
       ],
-      "title": "🎬 Jellyfin",
+      "title": "🐳 cAdvisor",
       "type": "stat"
     },
     {
@@ -309,13 +309,13 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "up{container=\"pihole\"}",
+          "expr": "up{job=\"alertmanager\"}",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         }
       ],
-      "title": "🛡️ Pi-hole",
+      "title": "🚨 AlertManager",
       "type": "stat"
     },
     {
@@ -367,7 +367,7 @@
               }
             ]
           },
-          "unit": "ms"
+          "unit": "bytes"
         },
         "overrides": []
       },
@@ -390,142 +390,14 @@
       },
       "targets": [
         {
-          "expr": "cortez_ha_response_time_seconds * 1000",
+          "expr": "container_memory_usage_bytes{name=~\"homeassistant|plex|jellyfin|pihole\"}",
           "interval": "",
-          "legendFormat": "Home Assistant",
+          "legendFormat": "{{name}} Memory",
           "refId": "A"
-        },
-        {
-          "expr": "cortez_jellyfin_response_time_seconds * 1000",
-          "interval": "",
-          "legendFormat": "Jellyfin",
-          "refId": "B"
         }
       ],
-      "title": "Service Response Times",
+      "title": "🏠 Home Services Memory Usage",
       "type": "timeseries"
-    },
-    {
-      "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 70
-              },
-              {
-                "color": "red",
-                "value": 85
-              }
-            ]
-          },
-          "unit": "celsius"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 6,
-        "x": 12,
-        "y": 4
-      },
-      "id": 6,
-      "options": {
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "text": {}
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "expr": "cortez_ai_hat_temperature_celsius",
-          "interval": "",
-          "legendFormat": "AI HAT",
-          "refId": "A"
-        }
-      ],
-      "title": "🤖 AI HAT Temperature",
-      "type": "gauge"
-    },
-    {
-      "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 80
-              },
-              {
-                "color": "red",
-                "value": 95
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 6,
-        "x": 18,
-        "y": 4
-      },
-      "id": 7,
-      "options": {
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "text": {}
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "expr": "cortez_ai_hat_utilization_percent",
-          "interval": "",
-          "legendFormat": "AI HAT Usage",
-          "refId": "A"
-        }
-      ],
-      "title": "🧠 AI HAT Utilization",
-      "type": "gauge"
     },
     {
       "datasource": "Prometheus",
@@ -583,117 +455,143 @@
       "gridPos": {
         "h": 8,
         "w": 12,
+        "x": 12,
+        "y": 4
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "expr": "rate(container_cpu_usage_seconds_total{name=~\"homeassistant|plex|jellyfin|pihole\"}[5m]) * 100",
+          "interval": "",
+          "legendFormat": "{{name}} CPU",
+          "refId": "A"
+        }
+      ],
+      "title": "🏠 Home Services CPU Usage",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "1": {
+                        "color": "green",
+                        "index": 0,
+                        "text": "UP"
+                      }
+                    },
+                    "type": "value"
+                  },
+                  {
+                    "options": {
+                      "0": {
+                        "color": "red",
+                        "index": 1,
+                        "text": "DOWN"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
         "x": 0,
         "y": 12
       },
-      "id": 8,
+      "id": 7,
       "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single"
-        }
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": false,
+            "displayName": "Service"
+          }
+        ]
       },
+      "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "cortez_ups_battery_percent",
+          "expr": "up",
+          "format": "table",
+          "instant": true,
           "interval": "",
-          "legendFormat": "UPS Battery",
+          "legendFormat": "",
           "refId": "A"
-        },
-        {
-          "expr": "cortez_ups_load_percent",
-          "interval": "",
-          "legendFormat": "UPS Load",
-          "refId": "B"
         }
       ],
-      "title": "⚡ UPS Status",
-      "type": "timeseries"
-    },
-    {
-      "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "vis": false
+      "title": "📋 All Services Status",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true
             },
-            "lineInterpolation": "linear",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
+            "indexByName": {
+              "Value": 2,
+              "instance": 1,
+              "job": 0
             },
-            "showPoints": "never",
-            "spanNulls": true,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
+            "renameByName": {
+              "Value": "Status",
+              "job": "Service"
             }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 12
-      },
-      "id": 9,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single"
-        }
-      },
-      "targets": [
-        {
-          "expr": "cortez_fail2ban_banned_ips",
-          "interval": "",
-          "legendFormat": "Banned IPs",
-          "refId": "A"
+          }
         }
       ],
-      "title": "🔒 Security - Fail2Ban",
-      "type": "timeseries"
+      "type": "table"
     }
   ],
   "refresh": "30s",
@@ -702,7 +600,7 @@
   "tags": [
     "roundrock",
     "services",
-    "home"
+    "working"
   ],
   "templating": {
     "list": []
@@ -713,7 +611,7 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "🏠 Home Services Dashboard",
-  "uid": "roundrock-home-services",
+  "title": "🏠 Working Home Services Dashboard",
+  "uid": "roundrock-working-services",
   "version": 1
 }
