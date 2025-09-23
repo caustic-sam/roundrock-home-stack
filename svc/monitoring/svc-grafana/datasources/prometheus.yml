@@ -1,6 +1,4 @@
 # Grafana datasource configuration
-# Save this as: svc/monitoring/svc-grafana/datasources/prometheus.yml
-
 apiVersion: 1
 
 datasources:

@@ -1,0 +1,13 @@
+# Grafana dashboard provider configuration
+apiVersion: 1
+
+providers:
+  - name: 'roundrock-dashboards'
+    orgId: 1
+    folder: 'RoundRock Home'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/json
