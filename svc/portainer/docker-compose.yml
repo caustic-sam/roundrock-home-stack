@@ -29,7 +29,7 @@ services:
     networks:
       - portainer
     restart: unless-stopped
-    command: >
+    command:
       --admin-password-file /config/admin-password
       --host unix:///var/run/docker.sock
       --logo "https://raw.githubusercontent.com/caustic-sam/roundrock-home-stack/main/docs/logo.png"
