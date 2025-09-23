@@ -1,0 +1,97 @@
+# =============================================================================
+# ROUNDROCK HOME STACK - PORTAINER MANAGEMENT (16GB Pi)
+# =============================================================================
+# Container management and orchestration platform
+# https://github.com/caustic-sam/roundrock-home-stack.git
+#
+# ACCESSING SERVICES:
+#   Portainer:    http://192.168.1.133:9000 (or your 16GB Pi IP)
+#   Portainer Agent: http://192.168.1.133:9001
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # PORTAINER - Container Management Web UI
+  # ---------------------------------------------------------------------------
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    ports:
+      - "9000:9000"
+      - "9443:9443"  # HTTPS access
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+      - ../svc-portainer/config:/config:ro
+    environment:
+      - PORTAINER_HTTP_ENABLED=true
+      - PORTAINER_HTTPS_ENABLED=true
+    networks:
+      - portainer
+    restart: unless-stopped
+    command: >
+      --admin-password-file /config/admin-password
+      --host unix:///var/run/docker.sock
+      --logo "https://raw.githubusercontent.com/caustic-sam/roundrock-home-stack/main/docs/logo.png"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9000/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ---------------------------------------------------------------------------
+  # PORTAINER AGENT - For Multi-Node Management
+  # ---------------------------------------------------------------------------
+  portainer-agent:
+    image: portainer/agent:latest
+    container_name: portainer-agent
+    ports:
+      - "9001:9001"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/volumes:/var/lib/docker/volumes
+      - /:/host
+    networks:
+      - portainer
+    restart: unless-stopped
+    environment:
+      - AGENT_CLUSTER_ADDR=tasks.portainer-agent
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9001/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ---------------------------------------------------------------------------
+  # NODE EXPORTER - System Metrics for Monitoring Stack
+  # ---------------------------------------------------------------------------
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter-16gb
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--collector.netclass.ignored-devices=^(veth|docker|lo).*'
+      - '--collector.netdev.device-exclude=^(veth|docker|lo).*'
+    ports:
+      - "9100:9100"  # Expose for monitoring stack
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - portainer
+    restart: unless-stopped
+
+volumes:
+  portainer_data:
+    driver: local
+
+networks:
+  portainer:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
