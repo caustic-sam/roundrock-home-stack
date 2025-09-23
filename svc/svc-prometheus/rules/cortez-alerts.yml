@@ -1,0 +1,82 @@
+# Prometheus alert rules for home stack monitoring
+# Save this as: svc-prometheus/rules/home-stack-alerts.yml
+
+groups:
+- name: home-stack-alerts
+  rules:
+  # High CPU usage alert
+  - alert: HighCPUUsage
+    expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High CPU usage detected"
+      description: "CPU usage is above 80% for more than 2 minutes on {{ $labels.instance }}"
+
+  # High memory usage alert
+  - alert: HighMemoryUsage
+    expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High memory usage detected"
+      description: "Memory usage is above 85% on {{ $labels.instance }}"
+
+  # Low disk space alert
+  - alert: LowDiskSpace
+    expr: (1 - (node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes{fstype!="tmpfs"})) * 100 > 85
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Low disk space"
+      description: "Disk usage is above 85% on {{ $labels.instance }} mount {{ $labels.mountpoint }}"
+
+  # Service down alerts
+  - alert: PrometheusDown
+    expr: up{job="prometheus"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Prometheus is down"
+      description: "Prometheus has been down for more than 1 minute"
+
+  - alert: NodeExporterDown
+    expr: up{job="node-exporter"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Node Exporter is down"
+      description: "Node Exporter has been down for more than 1 minute"
+
+  - alert: CadvisorDown
+    expr: up{job="cadvisor"} == 0
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: "cAdvisor is down"
+      description: "cAdvisor has been down for more than 1 minute"
+
+  # Container alerts
+  - alert: ContainerHighCPU
+    expr: rate(container_cpu_usage_seconds_total{name!=""}[5m]) * 100 > 80
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Container high CPU usage"
+      description: "Container {{ $labels.name }} CPU usage is above 80%"
+
+  - alert: ContainerHighMemory
+    expr: (container_memory_usage_bytes{name!=""} / container_spec_memory_limit_bytes{name!=""}) * 100 > 90
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Container high memory usage"
+      description: "Container {{ $labels.name }} memory usage is above 90% of limit"

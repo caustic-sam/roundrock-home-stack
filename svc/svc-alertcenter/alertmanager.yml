@@ -1,0 +1,41 @@
+# AlertManager configuration file
+# Save this as: svc-alertcenter/alertmanager.yml
+
+global:
+  smtp_smarthost: 'localhost:587'
+  smtp_from: 'alerts@roundrock-home.local'
+
+# The directory from which notification templates are read.
+templates: 
+- '/etc/alertmanager/templates/*.tmpl'
+
+# The root route on which each incoming alert enters.
+route:
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'web.hook'
+
+receivers:
+- name: 'web.hook'
+  webhook_configs:
+  - url: 'http://127.0.0.1:5001/'
+
+# Example for email notifications (uncomment and configure as needed)
+# - name: 'email-alerts'
+#   email_configs:
+#   - to: 'admin@example.com'
+#     subject: 'Alert: {{ .GroupLabels.alertname }}'
+#     body: |
+#       {{ range .Alerts }}
+#       Alert: {{ .Annotations.summary }}
+#       Description: {{ .Annotations.description }}
+#       {{ end }}
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'dev', 'instance']
