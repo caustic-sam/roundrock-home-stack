@@ -5,11 +5,11 @@
 # https://github.com/caustic-sam/roundrock-home-stack.git
 #
 # ACCESSING SERVICES:
-#   Grafana:      http://your-ip:3001 (admin/admin123)
-#   Prometheus:   http://your-ip:9091
-#   AlertManager: http://your-ip:9094
-#   Node Exporter: http://your-ip:9101/metrics
-#   cAdvisor:     http://your-ip:8020
+#   Grafana:      http://192.168.1.20:3001 (admin/admin123)
+#   Prometheus:   http://192.168.1.20:9091
+#   AlertManager: http://192.168.1.20:9094
+#   Node Exporter: http://192.168.1.20:9101/metrics
+#   cAdvisor:     http://192.168.1.20:8020
 # =============================================================================
 
 services:
