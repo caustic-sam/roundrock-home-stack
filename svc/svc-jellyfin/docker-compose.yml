@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+
+
+  jellyfin:
+    
+      container_name: jellyfin
+      image: jellyfin/jellyfin:latest
+      network_mode: host
+      environment:
+      TZ: ${HA_TIMEZONE}
+
+
+      volumes:
+      - ${CONFIG_DIR}/homeassistant:/config
+      - ${MEDIA_DIR}/tv:/data/tv
+      - ${MEDIA_DIR}/movies:/data/movies
+      - ${MEDIA_DIR}/music:/data/music
+      - ${MEDIA_DIR}/photos:/data/photos
+      - /etc/localtime:/etc/localtime:ro
+      - ${CONFIG_DIR}/jellyfin:/config
+
+      restart: unless-stopped
+

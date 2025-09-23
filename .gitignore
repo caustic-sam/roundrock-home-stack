@@ -1,0 +1,70 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Logs
+logs
+*.log
+*.log.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.*
+
+# Build output
+dist/
+build/
+out/
+coverage/
+tmp/
+temp/
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Misc
+*.local
+*.cache
+*.swp
+*.bak
+*.orig
+*.rej
+
+# Dependency directories
+jspm_packages/
+bower_components/
+
+# Test output
+test-results/
+junit.xml
+
+# Mac system files
+.AppleDouble
+.LSOverride
+
+# Windows system files
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux system files
+*~
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache

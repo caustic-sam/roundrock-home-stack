@@ -1,0 +1,33 @@
+.
+├── brian
+│   └── brian_monitoring_setup.sh
+├── config
+├── data
+├── docs
+│   └── pi-home-partner-doc.md
+├── roundrock-home-stack.dir.txt
+└── svc
+    ├── monitoring
+    │   └── docker-compose.yml
+    ├── svc-alertcenter
+    │   └── alertmanager.yml
+    ├── svc-grafana
+    │   └── datasources
+    │       └── prometheus.yml
+    ├── svc-homeassistant
+    │   └── docker-compose.yml
+    ├── svc-jellyfin
+    │   └── docker-compose.yml
+    ├── svc-pihole
+    │   └── docker-compose.yml
+    ├── svc-plex
+    │   └── docker-compose.yml
+    ├── svc-portainer
+    ├── svc-prometheus
+    │   ├── prometheus.yml
+    │   └── rules
+    │       └── brian-alerts.yml
+    └── svc-resourcespace
+        └── docker
+
+18 directories, 13 files

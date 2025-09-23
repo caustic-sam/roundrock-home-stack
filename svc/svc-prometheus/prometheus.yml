@@ -1,0 +1,84 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "rules/*.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # Monitor Host (this Pi)
+  - job_name: 'monitor-host'
+    static_configs:
+      - targets: ['localhost:9100']
+        labels:
+          instance: 'monitor-host'
+          role: 'monitoring'
+
+  # Project Cortez - Brian RPi5 16GB System Metrics
+  - job_name: 'cortez-brian-system'
+    static_configs:
+      - targets: ['192.168.1.133:9100']
+        labels:
+          instance: 'brian'
+          role: 'system'
+          project: 'cortez'
+
+  # AI HAT (13 TOPS) Monitoring
+  - job_name: 'cortez-ai-hat'
+    static_configs:
+      - targets: ['192.168.1.133:9101']
+        labels:
+          instance: 'brian'
+          role: 'ai-hat'
+          project: 'cortez'
+
+  # Docker Containers (Portainer, HA, Jellyfin, etc.)
+  - job_name: 'cortez-containers'
+    static_configs:
+      - targets: ['192.168.1.133:8090']  # cAdvisor on port 8090
+        labels:
+          instance: 'brian'
+          role: 'containers'
+          project: 'cortez'
+
+  # Home Assistant (HACS)
+  - job_name: 'cortez-homeassistant'
+    static_configs:
+      - targets: ['192.168.1.133:9105']
+        labels:
+          instance: 'brian'
+          role: 'homeassistant'
+          project: 'cortez'
+
+  # Jellyfin Media Server
+  - job_name: 'cortez-jellyfin'
+    static_configs:
+      - targets: ['192.168.1.133:9106']
+        labels:
+          instance: 'brian'
+          role: 'jellyfin'
+          project: 'cortez'
+
+  # UPS and Power Management
+  - job_name: 'cortez-ups-power'
+    static_configs:
+      - targets: ['192.168.1.133:9107']
+        labels:
+          instance: 'brian'
+          role: 'power'
+          project: 'cortez'
+
+  # Security Monitoring (UFW, Fail2Ban)
+  - job_name: 'cortez-security'
+    static_configs:
+      - targets: ['192.168.1.133:9108']
+        labels:
+          instance: 'brian'
+          role: 'security'
+          project: 'cortez'

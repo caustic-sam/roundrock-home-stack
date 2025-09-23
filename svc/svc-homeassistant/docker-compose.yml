@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+
+
+  homeassistant:
+    container_name: homeassistant
+
+    image: ghcr.io/home-assistant/home-assistant:stable
+
+    network_mode: host
+
+    environment:
+
+      TZ: ${HA_TIMEZONE}
+    volumes:
+    
+      - ${CONFIG_DIR}/homeassistant:/config
+    restart: unless-stopped
