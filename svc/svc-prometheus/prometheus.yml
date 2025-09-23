@@ -50,3 +50,10 @@ scrape_configs:
       - targets: ['host.docker.internal:9323']
     scrape_interval: 30s
     metrics_path: /metrics
+
+  # Macbook Pro M3 metrics (if applicable)
+  - job_name: 'macbook-metrics'
+    static_configs:
+      - targets: ['192.168.1.194:9100']
+    scrape_interval: 30s
+    metrics_path: /metrics  
