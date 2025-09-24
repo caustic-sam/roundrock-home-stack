@@ -1,15 +1,13 @@
 # Grafana dashboard provider configuration
-# Save this as: svc-grafana/dashboards/grafana-dashboards.yml
-
 apiVersion: 1
 
 providers:
-  - name: 'default'
+  - name: 'roundrock-dashboards'
     orgId: 1
-    folder: ''
+    folder: 'RoundRock Home'
     type: file
     disableDeletion: false
     updateIntervalSeconds: 30
     allowUiUpdates: true
     options:
-      path: /etc/grafana/provisioning/dashboards
+      path: /etc/grafana/provisioning/dashboards/json
