@@ -2,135 +2,87 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
+## Repository Overview
 
-This is the RoundRock Home Stack - a comprehensive containerized home lab and smart home monitoring solution designed for Raspberry Pi deployment. The stack combines traditional home services (Pi-hole, Plex, Home Assistant) with enterprise-grade monitoring (Prometheus, Grafana, AlertManager) and experimental AI capabilities.
+This is a Raspberry Pi home stack deployment repository containing containerized services for smart home automation, monitoring, and media streaming. The stack is designed to run on Raspberry Pi hardware with Docker Compose orchestration.
 
 ## Architecture
 
-The project is organized into service-based modules under the `svc/` directory:
+The repository follows a service-oriented architecture with each service isolated in its own directory under `svc/`:
 
-- **Applications (`svc/applications/`)**: Core home services including Pi-hole, Plex, Home Assistant, and Jellyfin
-- **Monitoring (`svc/monitoring/`)**: Full observability stack with Prometheus, Grafana, AlertManager, Node Exporter, and cAdvisor
-- **Management (`svc/portainer/`)**: Container management through Portainer
+- **svc/svc-homeassistant/** - Home Assistant smart home platform
+- **svc/svc-plex/** - Plex media server
+- **svc/svc-jellyfin/** - Jellyfin media server (alternative to Plex)
+- **svc/svc-portainer/** - Docker container management UI
+- **svc/monitoring/** - Complete monitoring stack with Prometheus, Grafana, AlertManager
+- **svc/svc-alertcenter/** - AlertManager configuration
+- **tools/** - Utility scripts for setup and maintenance
 
-Each service uses Docker Compose for orchestration with dedicated configuration directories.
+## Environment Configuration
 
-## Key Commands
+The system uses environment files for configuration:
+- `.rr.live.env` - Production environment template
+- `.rr.uat.env` - UAT environment template
+- `svc/monitoring/._env_monitoring` - Monitoring stack specific variables
+
+Key environment variables include paths for media (`MEDIA_DIR`), configuration (`CONFIG_DIR`), and service-specific settings for Pi-hole, Plex, Grafana, Prometheus, and Home Assistant.
+
+## Common Development Commands
 
 ### Service Management
 ```bash
-# Start monitoring stack
-cd svc/monitoring && docker-compose up -d
+# Start all services
+cd svc/monitoring && docker compose up -d
 
-# Start application services
-cd svc/applications && docker-compose up -d
+# Start specific service
+cd svc/svc-homeassistant && docker compose up -d
 
-# Start Portainer for container management
-cd svc/portainer && docker-compose up -d
-
-# View all running containers
-docker ps
-
-# Check service logs
-docker-compose logs [service-name]
+# Restart Grafana after configuration changes
+cd svc/monitoring && docker compose restart grafana
 ```
 
-### Environment Configuration
-- Environment variables are defined in `.rr.live.env` and `.rr.uat.env` files in the project root
-- Copy appropriate env file to `.env` before deployment
-- Key services use host networking for LAN visibility
+### Monitoring Stack
+- **Grafana**: http://localhost:3001 (admin/admin123)
+- **Prometheus**: http://localhost:9091
+- **AlertManager**: http://localhost:9094
+- **Node Exporter**: http://localhost:9101/metrics
+- **cAdvisor**: http://localhost:8020
 
-### AI/ML Capabilities
-```bash
-# Set up AI environment (Raspberry Pi)
-./rpicortex_setup.sh
+### Utility Scripts
+- `tools/rpicortex_setup.sh` - Complete Raspberry Pi AI/ML environment setup
+- `tools/pihole-prometheus.sh` - Pi-hole metrics exporter setup
+- `tools/rpi-diagnostics.py` - System diagnostics and health checks
 
-# Start AI metrics collection
-systemctl start rpicortex-metrics
+## Service Configuration Structure
 
-# Access Jupyter Lab
-# Default: http://[raspberry-pi-ip]:8888
+Each service follows a consistent pattern:
+- `docker-compose.yml` - Service orchestration
+- Configuration files mounted as volumes
+- Environment variables sourced from root-level `.env` files
+- Network isolation where appropriate
+- Health checks and restart policies
 
-# Run AI benchmarks
-cd ~/rpicortex && source ai-env/bin/activate
-python experiments/model_benchmark.py
-```
+## Key Design Patterns
 
-### Monitoring Setup
-```bash
-# Initialize Grafana dashboards
-./setup-Home_Stack_Dashboards.sh
-
-# Access monitoring services
-# Grafana: http://[host-ip]:3001 (admin/admin123)
-# Prometheus: http://[host-ip]:9091
-# AlertManager: http://[host-ip]:9094
-```
-
-## Service Access
-
-| Service | Port | Default Credentials |
-|---------|------|-------------------|
-| Pi-hole | 80 | admin / `${PIHOLE_PASSWORD}` |
-| Home Assistant | 8123 | Setup on first login |
-| Plex | 32400 | Plex account required |
-| Grafana | 3001 | admin / admin123 |
-| Prometheus | 9091 | No auth |
-| AlertManager | 9094 | No auth |
-| Portainer | 9000 | Setup on first login |
-| Node Exporter | 9101 | Metrics endpoint |
-| cAdvisor | 8020 | No auth |
-
-## Configuration Structure
-
-- **Environment Files**: `.rr.live.env`, `.rr.uat.env` contain service credentials and paths
-- **Prometheus Config**: `svc/monitoring/svc-prometheus/prometheus.yml` and `rules/` directory
-- **Grafana**: Datasources in `svc/monitoring/svc-grafana/datasources/`, dashboards provisioned via JSON files
-- **AlertManager**: Configuration in `svc/monitoring/svc-alertcenter/alertmanager.yml`
-
-## AI Integration
-
-The stack includes experimental AI monitoring via `ai-hat-monitor.py` which:
-- Detects AI HAT hardware on Raspberry Pi
-- Exports AI-specific metrics to Prometheus
-- Monitors CPU/GPU temperatures during ML workloads
-- Integrates with the broader monitoring ecosystem
+1. **Host Networking**: Home Assistant uses host network mode for device discovery
+2. **Volume Mounts**: Persistent data stored in `${CONFIG_DIR}` with service subdirectories
+3. **Environment Templating**: Centralized environment variable management
+4. **Monitoring Integration**: All services expose metrics for Prometheus scraping
+5. **Security**: Default passwords defined in environment files (should be changed)
 
 ## Development Workflow
 
-1. Make configuration changes to appropriate service directories
-2. Test changes with `docker-compose config` to validate YAML
-3. Apply changes with `docker-compose up -d --force-recreate [service]`
-4. Monitor service health through Grafana dashboards
-5. Check logs for any issues with `docker-compose logs`
+When modifying services:
+1. Update relevant `docker-compose.yml` in service directory
+2. Modify environment variables in root-level `.env` files
+3. Test service independently before integration
+4. Use monitoring stack to verify service health
+5. Check logs via Docker Compose or Portainer UI
 
-## File Organization
+## Network Architecture
 
-```
-roundrock-home-stack/
-├── svc/
-│   ├── applications/          # Home services
-│   ├── monitoring/           # Observability stack
-│   └── portainer/           # Container management
-├── docs/                    # Documentation
-├── .rr.live.env            # Live environment config
-├── .rr.uat.env             # UAT environment config
-├── rpicortex_setup.sh      # AI environment setup
-└── setup-Home_Stack_Dashboards.sh  # Grafana setup
-```
-
-## Testing
-
-No formal test suite exists. Validate deployments by:
-1. Checking service health endpoints
-2. Verifying metrics collection in Prometheus targets
-3. Confirming dashboard functionality in Grafana
-4. Testing alerting rules in AlertManager
-
-## Important Notes
-
-- Services use host networking for local network visibility
-- Persistent data stored in Docker named volumes
-- AI features require Raspberry Pi with compatible hardware
-- All credentials should be updated from defaults before production use
+Services communicate through:
+- Docker bridge networks for internal communication
+- Host networking for Home Assistant device discovery
+- Exposed ports for web interfaces and API access
+- Prometheus service discovery for monitoring targets
