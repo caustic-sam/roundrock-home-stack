@@ -57,8 +57,9 @@ scrape_configs:
       - targets: ['192.168.1.194:9100']
     scrape_interval: 30s
     metrics_path: /metrics  
+
   # RPiCortex AI Engine Metrics
   - job_name: 'rpicortex-ai'
     static_configs:
-      - targets: ['localhost:9103']
+      - targets: ['192.168.1.133:9103']
     scrape_interval: 15s

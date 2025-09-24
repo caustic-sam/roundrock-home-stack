@@ -390,7 +390,7 @@ sudo systemctl start rpicortex-metrics
 
 # Add to Prometheus config
 echo -e "${BLUE}📊 Adding to Prometheus configuration...${NC}"
-PROMETHEUS_CONFIG="/home/$USER/roundrock-home-stack/svc/monitoring/svc-prometheus/prometheus.yml"
+PROMETHEUS_CONFIG="./svc/monitoring/svc-prometheus/prometheus.yml"
 if [ -f "$PROMETHEUS_CONFIG" ]; then
     echo "
   # RPiCortex AI Engine Metrics
