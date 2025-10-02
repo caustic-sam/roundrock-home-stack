@@ -1,70 +1,137 @@
-# Prometheus configuration file for roundrock-home-stack
-# Save this as: svc-prometheus/prometheus.yml
+# Prometheus configuration for roundrock-home-stack
 
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
   external_labels:
-    monitor: 'roundrock-home-monitor'
+    monitor: 'roundrock-home-monitor'   # keep your label
 
-# Alertmanager configuration
+# Alertmanager (keep as-is; adjust target if it's on another host/port)
 alerting:
   alertmanagers:
     - static_configs:
-        - targets:
-          - alertmanager:9093
+        - targets: ['alertmanager:9093']
 
-# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+# Load rule files (put YAML rules under ./rules/)
 rule_files:
   - "rules/*.yml"
 
-# A scrape configuration containing exactly one endpoint to scrape:
 scrape_configs:
+
+  # ---- Core ----
   # Prometheus itself
   - job_name: 'prometheus'
+    scrape_interval: 5s
     static_configs:
       - targets: ['localhost:9090']
-    scrape_interval: 5s
 
-  # Node Exporter - System metrics
+  # Node Exporter (adjust target if you run it on a host IP instead of service name)
   - job_name: 'node-exporter'
     static_configs:
       - targets: ['node-exporter:9100']
     scrape_interval: 15s
 
-  # cAdvisor - Container metrics
+  # cAdvisor (confirm your cAdvisor port; many setups use 8080, yours might be different)
   - job_name: 'cadvisor'
     static_configs:
       - targets: ['cadvisor:8080']
     scrape_interval: 15s
 
-  # AlertManager
+  # Alertmanager health (optional but handy)
   - job_name: 'alertmanager'
     static_configs:
       - targets: ['alertmanager:9093']
     scrape_interval: 30s
 
-  # Docker daemon metrics (if enabled)
-  - job_name: 'docker'
-    static_configs:
-      - targets: ['host.docker.internal:9323']
-    scrape_interval: 30s
-    metrics_path: /metrics
-
-  # Macbook Pro M3 metrics (if applicable)
-  - job_name: 'macbook-metrics'
-    static_configs:
-      - targets: ['192.168.1.194:9100']
-    scrape_interval: 30s
-    metrics_path: /metrics  
-
-  # RPiCortex AI Engine Metrics
-  - job_name: 'rpicortex-ai'
-    static_configs:
-      - targets: ['192.168.1.133:9103']
-    scrape_interval: 15s
-
-  #
+  # ---- Edge Pi services ----
+  # Pi-hole v6 exporter (your edge Pi)
   - job_name: 'pihole6'
+    scrape_interval: 15s
     static_configs:
       - targets: ['192.168.1.20:9666']
+
+  # Uptime Kuma (edge)
+  - job_name: 'uptime-kuma'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['192.168.1.20:3005']
+
+  # Netdata (edge) — Prometheus format
+  - job_name: 'netdata'
+    metrics_path: /api/v1/allmetrics
+    params:
+      format: [prometheus]
+    static_configs:
+      - targets: ['192.168.1.20:19999']
+
+  # Blackbox ICMP probes (edge Blackbox exporter @ :9115)
+  - job_name: 'blackbox_icmp'
+    metrics_path: /probe
+    params:
+      module: [icmp_ipv4]
+    static_configs:
+      - targets:
+          - '1.1.1.1'
+          - '8.8.8.8'
+          - '192.168.1.254'      # your gateway
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target      # pass target to the exporter as ?target=
+      - source_labels: [__param_target]
+        target_label: instance            # keep instance label = probed host
+      - target_label: __address__
+        replacement: '192.168.1.20:9115' # blackbox exporter address
+
+  # Blackbox HTTP probes (same exporter; add/homepage URLs you care about)
+  - job_name: 'blackbox_http'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - 'https://1.1.1.1'
+          - 'https://www.google.com'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: '192.168.1.20:9115'
+
+  # Blackbox DNS probes (queries A record for example.com via your Pi-hole)
+  - job_name: 'blackbox_dns'
+    metrics_path: /probe
+    params:
+      module: [dns_udp]
+    static_configs:
+      - targets:
+          - '192.168.1.20:53'     # Pi-hole resolver
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: '192.168.1.20:9115'
+
+  # ---- Hosts / Extras ----
+  # Docker Engine metrics (only works if you enable engine metrics on :9323)
+  - job_name: 'docker'
+    metrics_path: /metrics
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['host.docker.internal:9323']
+
+  # MacBook Pro (node_exporter on your laptop)
+  - job_name: 'macbook-metrics'
+    metrics_path: /metrics
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['192.168.1.194:9100']
+
+  # RPiCortex AI engine (custom exporter)
+  - job_name: 'rpicortex-ai'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['192.168.1.133:9103']
