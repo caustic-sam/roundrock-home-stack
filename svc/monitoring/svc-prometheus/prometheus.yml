@@ -65,7 +65,6 @@ scrape_configs:
     scrape_interval: 15s
 
   #
-  - job_name: 'pihole'
+  - job_name: 'pihole6'
     static_configs:
-      - targets: ['rpi-edge:9617']
-    scrape_interval: 30s
+      - targets: ['192.168.1.20:9666']
