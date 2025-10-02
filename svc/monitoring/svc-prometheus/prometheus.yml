@@ -44,6 +44,11 @@ scrape_configs:
       - targets: ['alertmanager:9093']
     scrape_interval: 30s
 
+  #Pihole64 Metrics (if applicable)
+  - job_name: 'pihole6'
+    static_configs:
+    - targets: ['192.168.1.20:9666']
+
   # Docker daemon metrics (if enabled)
   - job_name: 'docker'
     static_configs:
